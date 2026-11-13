@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Microscopic Malfunctions</title>
+<style>
+:root{--bg:#F1F4F0;--ink:#1E2A2B;--muted:#55646A;--panel:#FFFFFF;--line:#CBD5CF;--cyto:#E8E2F4;--mem:#6C4FA0;--nuc:#9DB4E8;--nucl:#2F3E7A;--rer:#F2B35E;--ser:#F7D58F;--golgi:#E88AA6;--mito:#E8685A;--cris:#FBE3DF;--lyso:#4FA37B;--perox:#2E8C96;--endo:#8CC5E8;--cent:#3B2F5C;--cyt:#8A82A6;--ribo:#4B3F73;--glow:#1E2A2B;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#12161A;--ink:#E9EFEB;--muted:#9AA8AD;--panel:#1B2127;--line:#2E373E;--cyto:#2A2540;--mem:#A98BE0;--nuc:#4A5F9C;--nucl:#B8C4F5;--rer:#D99A3E;--ser:#B89445;--golgi:#D4698A;--mito:#D4584B;--cris:#F6C9C3;--lyso:#3F8C69;--perox:#2A7D86;--endo:#5B9CC4;--cent:#C8B8F0;--cyt:#8C84B0;--ribo:#C0B4EA;--glow:#FFFFFF}}
+:root[data-theme="dark"]{--bg:#12161A;--ink:#E9EFEB;--muted:#9AA8AD;--panel:#1B2127;--line:#2E373E;--cyto:#2A2540;--mem:#A98BE0;--nuc:#4A5F9C;--nucl:#B8C4F5;--rer:#D99A3E;--ser:#B89445;--golgi:#D4698A;--mito:#D4584B;--cris:#F6C9C3;--lyso:#3F8C69;--perox:#2A7D86;--endo:#5B9CC4;--cent:#C8B8F0;--cyt:#8C84B0;--ribo:#C0B4EA;--glow:#FFFFFF}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 20px 40px}
+h1{font-family:Palatino,"Palatino Linotype","Book Antiqua",Georgia,serif;font-weight:700;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:0 0 8px;letter-spacing:-.01em}
+.sub{margin:0 0 24px;color:var(--muted);max-width:56ch}
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:24px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:8px}
+svg{display:block;width:100%;height:auto}
+.part{cursor:pointer;outline:none}
+.part{transition:opacity .15s}
+svg:has(.part:is(:hover,:focus-visible)) .part:not(:hover):not(:focus-visible){opacity:.28}
+svg:not(:has(.part:is(:hover,:focus-visible))):has(.part.on) .part:not(.on){opacity:.28}
+.part[data-id=cyto]:is(:hover,.on,:focus-visible) path:not(.hit){stroke:var(--ink);stroke-width:4.5}
+.part[data-id=ser]:is(:hover,.on,:focus-visible) path:not(.hit),.part[data-id=golgi]:is(:hover,.on,:focus-visible) path:not(.hit){stroke-width:14}
+.part[data-id=rer]:is(:hover,.on,:focus-visible) path:not(.hit){stroke-width:17}
+.part[data-id=golgi]:is(:hover,.on,:focus-visible) circle{stroke:var(--ink);stroke-width:2}
+.part[data-id=ribosomes]:is(:hover,.on,:focus-visible) circle[r="4"]{stroke:var(--ink);stroke-width:3}
+.part:hover .s,.part.on .s,.part:focus-visible .s{stroke:var(--ink);stroke-width:3}
+.side{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px}
+.side h2{font-family:Palatino,Georgia,serif;font-size:1.35rem;margin:0 0 6px}
+#out{margin:0 0 18px;color:var(--muted);min-height:3em}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{font:inherit;font-size:.9rem;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chips button:hover{border-color:var(--ink)}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.ov{position:fixed;inset:0;background:rgba(10,14,16,.6);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));z-index:20}
+.ov[hidden]{display:none}
+.card{position:relative;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:18px;max-width:640px;width:100%;max-height:100%;overflow:auto;padding:26px 26px 28px}
+.card h2{margin:0 36px 4px 0}
+.tag{color:var(--muted);font-style:italic;margin:0 0 10px}
+.card h3{font-family:Palatino,Georgia,serif;font-size:1.05rem;margin:22px 0 6px;padding-top:14px;border-top:1px solid var(--line)}
+.card h2+h3,.tag+h3{border-top:0;padding-top:0;margin-top:14px}
+.card p{margin:0 0 8px;max-width:68ch}
+.card ul,.card ol{padding-left:1.2rem;margin:0}
+.card li{margin:0 0 8px;max-width:68ch}
+.soon{color:var(--muted);font-style:italic}
+.card a{color:inherit;word-break:break-all}
+.x{position:absolute;top:10px;right:12px;font-size:1.6rem;line-height:1;background:none;border:0;color:var(--ink);cursor:pointer;padding:6px 10px}
+.x:focus-visible{outline:2px solid var(--ink)}
+.more{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.ov:not([hidden]){animation:fadeIn .22s ease}
+.ov:not([hidden]) .card{animation:pop .28s cubic-bezier(.2,.8,.2,1)}
+.ov.closing{opacity:0;transition:opacity .18s ease}
+.ov.closing .card{transform:translateY(8px) scale(.97);transition:transform .18s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.acc-btn{display:flex;justify-content:space-between;align-items:center;width:100%;font-family:Palatino,Georgia,serif;font-weight:700;font-size:1.05rem;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px;cursor:pointer;text-align:left;transition:background .2s ease,color .2s ease,border-color .2s ease}
+.acc-btn:hover{border-color:var(--ink)}
+.acc-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.acc-btn[aria-expanded="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.acc-btn .chev{font-size:.9rem;transition:transform .3s ease}
+.acc-btn[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.acc{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s ease}
+.acc.open{grid-template-rows:1fr}
+.acc>div{overflow:hidden;min-height:0}
+.acc .in{padding:14px 4px 4px}
+@media (prefers-reduced-motion:reduce){.ov:not([hidden]),.ov:not([hidden]) .card{animation:none}.ov.closing,.ov.closing .card,.acc,.acc-btn,.acc-btn .chev{transition:none}}
+.foot{max-width:1120px;margin:0 auto;padding:0 20px 28px;color:var(--muted);font-size:.85rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Microscopic Malfunctions</h1>
+<p class="sub">Select a structure in the cell to explore what it does and what happens when it fails.</p>
+<div class="grid">
+<div class="stage">
+<svg viewBox="0 0 760 560" role="group" aria-label="Illustrated cell with 11 selectable structures">
+<path d="M380 30C560 20 720 120 725 280C730 440 600 535 390 530C190 528 40 440 38 270C36 120 200 38 380 30Z" fill="var(--cyto)" stroke="var(--mem)" stroke-width="5"/>
+
+<g class="part" data-id="cyto" fill="none" stroke="var(--cyt)" stroke-width="2.5" stroke-linecap="round">
+<path d="M470 135L650 160M470 135L700 290M470 135C540 260 620 360 650 410M470 135C430 300 450 420 470 505M470 135C400 90 340 70 290 55M470 135C330 120 170 130 90 210M95 320C130 430 250 490 330 508"/>
+<path d="M470 135L650 160M470 135L700 290M470 135C540 260 620 360 650 410M470 135C430 300 450 420 470 505M470 135C400 90 340 70 290 55M470 135C330 120 170 130 90 210M95 320C130 430 250 490 330 508" stroke="transparent" stroke-width="16"/>
+</g>
+
+<g class="part" data-id="ser" fill="none" stroke="var(--ser)" stroke-width="9" stroke-linecap="round">
+<path d="M236 338C200 372 202 410 238 422C272 432 300 416 332 432C360 446 384 432 408 442M238 422C232 452 262 474 302 470C322 468 332 452 332 432M205 392C176 396 152 418 160 448"/>
+</g>
+
+<g class="part" data-id="rer">
+<g fill="none" stroke="var(--rer)" stroke-width="12" stroke-linecap="round">
+<path d="M402 222C440 245 440 295 402 322"/><path d="M414 208C468 238 470 304 414 340"/><path d="M426 196C492 232 494 312 426 354"/>
+</g>
+<g fill="var(--ribo)"><circle cx="456" cy="236" r="3.5"/><circle cx="471" cy="270" r="3.5"/><circle cx="458" cy="312" r="3.5"/><circle cx="496" cy="256" r="3.5"/><circle cx="497" cy="300" r="3.5"/></g>
+</g>
+
+<g class="part" data-id="nucleus">
+<circle class="s" cx="300" cy="270" r="96" fill="none" stroke="var(--nucl)" stroke-width="2"/>
+<circle class="s" cx="300" cy="270" r="88" fill="var(--nuc)" stroke="var(--nucl)" stroke-width="2.5"/>
+<circle cx="284" cy="262" r="26" fill="var(--nucl)"/>
+<path d="M330 235C350 240 352 262 338 272M250 310C265 328 290 332 305 322" fill="none" stroke="var(--nucl)" stroke-width="2.5" stroke-linecap="round"/>
+</g>
+
+<g class="part" data-id="golgi" fill="none" stroke="var(--golgi)" stroke-width="10" stroke-linecap="round">
+<path d="M545 255C575 245 605 250 625 265M540 277C575 267 610 272 632 288M540 299C575 289 612 294 634 310M545 321C578 311 610 316 628 332"/>
+<circle cx="526" cy="262" r="6" fill="var(--golgi)" stroke="none"/><circle cx="642" cy="348" r="6" fill="var(--golgi)" stroke="none"/>
+</g>
+
+<g class="part" data-id="mito">
+<g transform="translate(150 200) rotate(-25)"><ellipse class="s" rx="36" ry="18" fill="var(--mito)" stroke="var(--mito)" stroke-width="2"/><polyline points="-24,2 -18,-9 -12,9 -6,-9 0,9 6,-9 12,9 18,-9 24,2" fill="none" stroke="var(--cris)" stroke-width="2"/></g>
+<g transform="translate(580 455) rotate(15)"><ellipse class="s" rx="40" ry="20" fill="var(--mito)" stroke="var(--mito)" stroke-width="2"/><polyline points="-28,2 -21,-10 -14,10 -7,-10 0,10 7,-10 14,10 21,-10 28,2" fill="none" stroke="var(--cris)" stroke-width="2"/></g>
+</g>
+
+<g class="part" data-id="lyso">
+<circle class="s" cx="215" cy="140" r="12" fill="var(--lyso)" stroke="var(--lyso)" stroke-width="2"/><circle class="s" cx="112" cy="290" r="12" fill="var(--lyso)" stroke="var(--lyso)" stroke-width="2"/><circle class="s" cx="675" cy="370" r="12" fill="var(--lyso)" stroke="var(--lyso)" stroke-width="2"/>
+<g fill="var(--cris)" opacity=".8"><circle cx="212" cy="138" r="3"/><circle cx="109" cy="288" r="3"/><circle cx="672" cy="368" r="3"/></g>
+</g>
+
+<g class="part" data-id="perox">
+<rect class="s" x="340" y="100" width="22" height="22" rx="6" fill="var(--perox)" stroke="var(--perox)" stroke-width="2"/><rect class="s" x="470" y="460" width="22" height="22" rx="6" fill="var(--perox)" stroke="var(--perox)" stroke-width="2"/>
+<g fill="var(--cris)" opacity=".85"><rect x="347" y="107" width="8" height="8" rx="2"/><rect x="477" y="467" width="8" height="8" rx="2"/></g>
+</g>
+
+<g class="part" data-id="endo">
+<circle class="s" cx="676" cy="205" r="10" fill="var(--endo)" stroke="var(--endo)" stroke-width="2"/><circle class="s" cx="698" cy="240" r="9" fill="var(--endo)" stroke="var(--endo)" stroke-width="2"/><circle class="s" cx="690" cy="330" r="10" fill="var(--endo)" stroke="var(--endo)" stroke-width="2"/>
+</g>
+
+<g class="part" data-id="cent" transform="translate(470 135)">
+<circle r="20" fill="var(--cent)" opacity=".15"/>
+<rect class="s" x="-14" y="-12" width="26" height="8" rx="3" fill="var(--cent)" stroke="var(--cent)" stroke-width="1" transform="rotate(20)"/><rect class="s" x="2" y="-2" width="8" height="26" rx="3" fill="var(--cent)" stroke="var(--cent)" stroke-width="1" transform="rotate(20)"/>
+</g>
+
+<g class="part" data-id="ribosomes" id="ribo" fill="var(--ribo)"></g>
+</svg>
+</div>
+<div class="side">
+<h2>Explore the cell</h2>
+<p id="out">Click a structure in the cell drawing, or pick one from the list. A window opens with what it does and what happens when it fails.</p>
+<div class="chips" id="chips"></div>
+<div class="chips more"><button type="button" id="rankBtn">Importance ranking</button><button type="button" id="srcBtn">Sources</button></div>
+<div id="dlg" class="ov" hidden><div class="card" role="dialog" aria-modal="true" aria-labelledby="dt"><button type="button" class="x" id="dx" aria-label="Close">×</button><div id="dbody"></div></div></div>
+</div>
+</div>
+</div>
+<footer class="foot">© 2026 Jordyn Ross and Nina Henry</footer>
+<script>
+(function(){
+var names={nucleus:"Nucleus",ribosomes:"Ribosomes",rer:"Rough endoplasmic reticulum",ser:"Smooth endoplasmic reticulum",golgi:"Golgi apparatus",mito:"Mitochondria",lyso:"Lysosomes",perox:"Peroxisomes",endo:"Endosomes",cent:"Centrosome",cyto:"Cytoskeleton"};
+var NS="http://www.w3.org/2000/svg";
+var dots=[[180,300],[160,335],[250,150],[330,145],[385,150],[120,250],[520,395],[555,205],[610,385],[420,400],[540,360],[355,505]];
+var ribo=document.getElementById("ribo");
+dots.forEach(function(d){
+  var h=document.createElementNS(NS,"circle");h.setAttribute("cx",d[0]);h.setAttribute("cy",d[1]);h.setAttribute("r",11);h.setAttribute("fill","transparent");
+  var c=document.createElementNS(NS,"circle");c.setAttribute("cx",d[0]);c.setAttribute("cy",d[1]);c.setAttribute("r",4);
+  ribo.appendChild(h);ribo.appendChild(c);
+});
+var chips=document.getElementById("chips");
+var D={
+nucleus:{t:"Nucleus",
+d:[["Structure","The main components of the cell nucleus are the nuclear envelope, nuclear pore complexes, nucleoplasm, chromatin, nucleolus, and nuclear lamina (Britannica)."],["Main function","The primary function of the nucleus is to store and protect the cell’s genetic material (DNA) and regulate gene expression, directing key processes such as metabolism and cell division (Britannica)."]],
+dep:[["Ribosomes","The nucleus builds ribosomal parts inside the nucleolus and ships out messenger RNA (mRNA) blueprints. Without these instructions and parts, ribosomes cannot assemble or build proteins (Stanford Medicine)."],["Endoplasmic Reticulum (ER)","The outer membrane of the nucleus connects directly to the ER and feeds it mRNA blueprints. The ER needs these instructions to know which proteins and lipids to manufacture and fold (NIH)."],["Mitochondria","Although mitochondria have a small amount of their own DNA, they rely on the nucleus for most of their structural proteins and enzymes. Without nuclear instructions, mitochondria cannot generate energy for the cell (NIH)."]],
+f:"When the nucleus malfunctions, DNA protection, gene expression, and molecular transport break down, preventing the cell from making essential proteins or dividing properly (NIH).",
+dis:[["Hutchinson-Gilford Progeria Syndrome","Mutations in the LMNA gene create a faulty lamin A protein that warps the nuclear membrane, disrupting cell division and causing rapid premature aging (NIH)."],["Emery-Dreifuss Muscular Dystrophy","Missing or defective nuclear envelope proteins make nuclei fragile, causing muscle cells to break down under physical strain (MedlinePlus)."],["Li-Fraumeni Syndrome (Cancer)","Mutations in the nuclear protein p53 prevent the nucleus from stopping the division of cells with damaged DNA, leading to tumor growth (MedlinePlus)."]]},
+ribosomes:{t:"Ribosomes",
+d:[["Structure","A ribosome is an intracellular structure made of both RNA and protein, split into the large and small subunits (Lec 8 Unit 3)."],["Main function","Its main function is protein synthesis in the cell. The ribosome reads the messenger RNA (mRNA) sequence and translates that genetic code into a specified string of amino acids, which grow into long chains that fold to form proteins. It achieves this by traveling along the mRNA molecule and reading each three-letter codon, serving as a docking station where the codon pairs with a matching anticodon on a specific transfer RNA (tRNA) to add the correct amino acid to the growing chain (NIH)."]],
+dep:[["The Nucleus","Ribosomes completely rely on the Nucleus for their creation and instructions. The nucleolus is a segment inside the nucleus, and assembles ribosomal subunits (Lec 8 Unit 3)."],["The Mitochondria","Acts as the powerplant that keeps ribosomes running. Without this energy, ribosomes are unable to link amino acids together to make proteins (NIH)."],["The Rough Endoplasmic Reticulum (ER)","Ribosomes depend on the ER as a docking station to build, fold, and export proteins. Without the ER, these proteins would never reach their final destination (NIH)."]],
+f:"If ribosomes don’t form correctly, cells can’t make enough proteins, leading to serious diseases (Stowers Institute for Medical Research).",
+dis:[["Diamond-Blackfan Anemia","Missing ribosomal building blocks stop the bone marrow from making proteins needed for red blood cells. As a result, young red blood cells die off, causing severe anemia (NIH)."],["Treacher Collins syndrome","This disorder affects the development of bones and tissues in the face. Cells fail to produce enough ribosomal RNA during early fetal development. This lack of ribosomes kills off facial tissue cells, leading to underdeveloped cheekbones and jaws (MedlinePlus)."],["Shwachman-Diamond syndrome","This inherited condition causes bone marrow dysfunction, poor growth, and pancreatic insufficiency. The two halves of the ribosome cannot lock together properly to finish building (Cleveland Clinic)."]]},
+rer:{t:"Rough Endoplasmic Reticulum",
+d:[["Structure","When proteins are destined to be part of the cell membrane or exported from the cell, the ribosomes assembling them attach to the endoplasmic reticulum, giving it a rough appearance."],["Main function","Its function is to produce proteins for the rest of the cell to function."]],
+dep:[["Golgi Apparatus","Receives proteins from the rough ER to modify, sort, and package."],["Lysosomes","Depend on the rough ER to produce the digestive enzymes they need to break down waste."],["Plasma Membrane","Receives important membrane proteins that are first made and folded in the rough ER."]],
+f:"Proteins may fold incorrectly or fail to reach their proper destinations. This can cause defective proteins to build up and prevent cells from functioning normally.",
+dis:[["Cystic Fibrosis","A common mutation causes the CFTR protein to fold incorrectly in the ER. The protein is usually destroyed before reaching the cell membrane, contributing to thick mucus buildup in the lungs and other organs."],["Alpha-1 Antitrypsin Deficiency","A defective protein can accumulate inside the ER of liver cells, causing liver damage and increasing the risk of cirrhosis."],["Osteogenesis Imperfecta (Brittle Bone Disease)","Certain mutations disrupt collagen folding and processing in the rough ER, resulting in weak bones that fracture easily."]]},
+ser:{t:"Smooth Endoplasmic Reticulum",
+d:[["Structure","The smooth ER is a network of membranes without ribosomes attached to its surface."],["Main function","Produces lipids, helps break down drugs and harmful substances, and regulates calcium storage. In muscle cells, a specialized version called the sarcoplasmic reticulum stores and releases calcium for muscle contraction."]],
+dep:[["Plasma Membrane","Uses lipids made by the smooth ER to help build and maintain its membrane."],["Mitochondria","Work closely with the ER to exchange lipids and regulate calcium levels."],["Golgi Apparatus","Receives certain lipids from the ER for further processing and transport."]],
+f:"Cells may struggle to produce important lipids, process certain chemicals, or control calcium levels. This can disrupt muscle movement, cell signaling, and other normal functions.",
+dis:[["Malignant Hyperthermia","Certain genetic changes cause too much calcium to be released from the sarcoplasmic reticulum during exposure to specific anesthesia drugs. This can cause dangerous muscle contractions and a rapid rise in body temperature."],["Darier Disease","A defective calcium pump prevents the ER from maintaining normal calcium levels, weakening connections between skin cells and causing rough, scaly skin."],["Wolfram Syndrome","Defects in an ER membrane protein interfere with calcium regulation and cell survival. This can damage insulin-producing cells and optic nerve cells, causing diabetes and vision loss."]]},
+golgi:{t:"Golgi Apparatus",
+d:[["Structure","The Golgi apparatus is made of stacks of flattened, membrane-covered sacs."],["Main function","Modifies, sorts, and packages proteins and lipids received from the ER. It helps make sure materials reach the correct destinations inside or outside the cell."]],
+dep:[["Lysosomes","Depend on the Golgi to label and sort digestive enzymes so they reach the correct destination."],["Plasma Membrane","Receives proteins and lipids that have been processed and transported through the Golgi."],["Secretory Vesicles","Receive packaged materials from the Golgi before transporting them to other locations or releasing them outside the cell."]],
+f:"Proteins and lipids may not be modified or delivered correctly. Important materials can end up in the wrong location, disrupting normal cellular processes.",
+dis:[["I-cell Disease (Mucolipidosis II)","A defective Golgi enzyme cannot properly label digestive enzymes for delivery to lysosomes. As a result, waste accumulates inside cells and causes serious developmental problems."],["Wilson Disease","A defective copper transporter that normally works through the Golgi transport system prevents the body from removing excess copper properly. Copper accumulates in the liver, brain, and other organs."],["Cutis Laxa Type 2A","A defective protein disrupts normal Golgi acidity and protein processing. This contributes to weak elastic fibers, causing unusually loose and sagging skin."]]},
+mito:{t:"Mitochondria",
+d:[["Structure","Mitochondria are membrane-bound organelles, with two different membranes. They consist of a smooth outer membrane, and a highly folded inner membrane. These folds called cristae, surround the internal fluid known as the matrix (NIH)."],["Main function","Mitochondria break down sugars through cellular respiration, and convert energy into ATP (Lec 10 Unit 5). Mitochondria supply the necessary energy for almost every active process in the cell (NIH)."]],
+dep:[["Plasma Membrane","Depends on ATP from mitochondria to power ion pumps that maintain important concentration differences."],["Lysosomes","Need energy to maintain their acidic environment and carry out normal cellular recycling."],["Cytoskeleton","Uses ATP-powered motor proteins to transport materials and organelles throughout the cell."]],
+f:"Cells cannot produce enough ATP to support normal functions. Organs that need large amounts of energy, especially the brain, heart, and muscles, are often affected the most.",
+dis:[["MELAS Syndrome","Mutations in mitochondrial DNA interfere with energy production, causing muscle weakness, seizures, and episodes that resemble strokes."],["Leber Hereditary Optic Neuropathy","Mitochondrial mutations disrupt energy production in cells of the optic nerve, causing rapid loss of central vision."],["Leigh Syndrome","Defects in mitochondrial energy production damage cells in the brain and nervous system, causing movement difficulties, muscle weakness, and developmental problems."]]},
+lyso:{t:"Lysosomes",s:"The cell’s recycling centers",
+d:[["","They are surrounded by a membrane and contain enzymes that break down waste, damaged organelles, and materials the cell no longer needs. The cell can then reuse some of these materials."]],
+dep:[["Endosomes","Bring materials to lysosomes to be broken down."],["","Damaged mitochondria can be broken down and recycled by lysosomes."],["Plasma Membrane","Uses lysosomal pathways to get rid of certain old or damaged membrane proteins."]],
+f:"Waste starts building up because the cell can no longer break it down properly. Over time, this buildup can damage cells and interfere with their normal functions.",
+dis:[["Parkinson’s disease","Problems with lysosomal recycling can allow harmful proteins, including alpha-synuclein, to accumulate in neurons."],["Alzheimer’s disease","Impaired lysosomal breakdown can contribute to the buildup of abnormal proteins and damage to brain cells."],["Cancer","Cancer cells can increase lysosomal recycling to obtain nutrients, helping them survive, grow, and sometimes resist treatment."]]},
+perox:{t:"Peroxisomes",
+d:[["","Small, membrane-covered organelles that help break down certain fats and process potentially harmful chemicals. They contain enzymes that break down hydrogen peroxide, which can damage cells if too much builds up. They also help make important membrane lipids."]],
+dep:[["Mitochondria","Work with peroxisomes to process fatty acids."],["Endoplasmic reticulum","Works with peroxisomes to make and process lipids."],["Plasma membrane","Uses certain lipids produced with help from peroxisomes."]],
+f:"Certain fats cannot be processed properly and begin to build up. Important lipids may also become scarce, which can damage the brain, nerves, and other organs.",
+dis:[["Zellweger spectrum disorder","Peroxisomes cannot carry out normal functions, causing problems with brain development and other organs."],["X-linked adrenoleukodystrophy","Very-long-chain fatty acids build up and can damage the nervous system and adrenal glands."],["Liver Cancer","Changes in peroxisomal metabolism may contribute to cellular stress and processes involved in liver cancer progression."]]},
+endo:{t:"Endosomes",s:"The cell’s sorting centers",
+d:[["","They are membrane-covered compartments that receive materials brought into the cell. They decide whether those materials should be reused, sent somewhere else, or delivered to lysosomes for breakdown."]],
+dep:[["Lysosomes","Receive materials sorted by endosomes for breakdown."],["Plasma membrane","Gets certain receptors and membrane components back through recycling."],["Golgi apparatus","Exchanges proteins and transport materials with endosomes."]],
+f:"Materials can end up in the wrong place or get stuck inside the cell. This can cause unwanted buildup, interfere with cell communication, and prevent important molecules from being recycled.",
+dis:[["Yersinia pestis infection (plague)","The bacteria can interfere with normal endosomal recycling, helping them avoid destruction inside immune cells."],["Tuberculosis","The bacteria prevent certain compartments from maturing normally and delivering them to lysosomes, allowing the bacteria to survive inside immune cells."],["Cervical cancer","HPV uses the cell’s endosomal transport system to move its genetic material toward the nucleus. Persistent infection with high-risk HPV types can eventually cause cervical cancer."]]},
+cent:{t:"Centrosome",
+d:[["","Helps organize the cell’s microtubules, which are tiny structures that provide support and help move things around. It contains two centrioles surrounded by proteins. During cell division, centrosomes help form the spindle that separates chromosomes into two new cells."]],
+dep:[["Microtubules","The centrosome helps organize the network of microtubules throughout the cell."],["Mitotic spindle","Relies on centrosomes to help organize chromosome separation during cell division."],["Cilia","Centrioles can help form cilia, which allow certain cells to move fluids or sense their surroundings."]],
+f:"Cells may struggle to divide correctly or organize their internal structures. This is especially harmful during development, when the body needs to produce large numbers of new cells.",
+dis:[["Melanoma (skin cancer)","Extra centrosomes can cause errors during cell division, leading to abnormal chromosome numbers and contributing to cancer growth and progression."],["Seckel syndrome","Some forms involve centrosomal defects that affect cell division and normal growth."],["Microcephalic osteodysplastic primordial dwarfism type II","A defect in the centrosomal protein pericentrin causes severe growth problems and a smaller head size."]]},
+cyto:{t:"Cytoskeleton",s:"The cell’s internal support system",
+d:[["","It is made of protein fibers that help the cell maintain its shape, move, divide, and transport materials. Its three main components are microfilaments, intermediate filaments, and microtubules."]],
+dep:[["Endosomes","Use the cytoskeleton to move materials throughout the cell."],["Mitochondria","Can travel along cytoskeletal tracks to reach areas that need energy."],["Nucleus","Uses connections to the cytoskeleton to help maintain its position and shape."]],
+f:"Cells may lose their shape, become fragile, or struggle to move materials. Depending on which proteins are affected, this can damage muscles, skin, or blood cells.",
+dis:[["Duchenne muscular dystrophy","Missing dystrophin weakens the connection between the muscle cell’s internal support system and its surroundings, causing muscle damage."],["Epidermolysis bullosa simplex","A genetic disorder where defective keratin fibers weaken skin cells, causing the skin to blister from minor friction."],["Kartagener syndrome","Defects in the microtubule-based cilia disrupt normal movement and can cause internal organs to develop on the opposite side of the body."]]}
+};
+var RANK=["Nucleus","Ribosomes","Mitochondria","Cytoskeleton","Rough Endoplasmic Reticulum","Golgi Apparatus","Smooth Endoplasmic Reticulum","Lysosomes","Endosomes","Peroxisomes","Centrosome"];
+var SRC=["https://www.britannica.com/science/nucleus-biology","https://www.genome.gov/genetics-glossary/Ribosome","https://www.genome.gov/genetics-glossary/Mitochondria","https://www.genome.gov/genetics-glossary/Endoplasmic-Reticulum-Rough","https://cns.utexas.edu/news/research/possible-explanation-human-diseases-caused-defective-ribosomes","https://www.youtube.com/watch?v=_NTeIMvzc24","https://medlineplus.gov/genetics/condition/treacher-collins-syndrome/","https://my.clevelandclinic.org/health/diseases/23563-shwachman-diamond-syndrome","https://med.stanford.edu/news/insights/2025/07/behind-the-science-ribosomes-maria-barna.html","https://pmc.ncbi.nlm.nih.gov/articles/PMC5195863/","https://www.genome.gov/genetics-glossary/Progeria","https://medlineplus.gov/genetics/condition/emery-dreifuss-muscular-dystrophy/","https://medlineplus.gov/genetics/condition/li-fraumeni-syndrome/"];
+var dlg=document.getElementById("dlg"),dbody=document.getElementById("dbody"),dx=document.getElementById("dx"),opener=null;
+var soon="<p class='soon'>Content coming soon.</p>";
+function li(r){return "<li>"+(r[0]?"<b>"+r[0]+":</b> ":"")+r[1]+"</li>"}
+function acc(i,title,inner){return "<button type='button' class='acc-btn' aria-expanded='false'><span>"+title+"</span><span class='chev' aria-hidden='true'>\u25BE</span></button><div class='acc'><div><div class='in'>"+inner+"</div></div></div>"}
+function render(id){
+  var x=D[id],h="<h2 id='dt'>"+x.t+"</h2>";
+  if(x.s)h+="<p class='tag'>"+x.s+"</p>";
+  h+="<h3>Description and normal function</h3>"+(x.d?x.d.map(function(r){return "<p>"+(r[0]?"<b>"+r[0]+":</b> ":"")+r[1]+"</p>"}).join(""):soon);
+  h+=acc(1,"Top 3 dependencies",x.dep?"<ul>"+x.dep.map(li).join("")+"</ul>":soon);
+  h+=acc(2,"What happens if it malfunctions",x.f?"<p>"+x.f+"</p>":soon);
+  h+=acc(3,"Associated diseases",x.dis?"<ul>"+x.dis.map(li).join("")+"</ul>":soon);
+  return h;
+}
+var ct;
+function openDlg(html,from){clearTimeout(ct);dlg.classList.remove("closing");opener=from||document.activeElement;dbody.innerHTML=html;dlg.hidden=false;dlg.querySelector(".card").scrollTop=0;dx.focus()}
+dbody.addEventListener("click",function(e){var b=e.target.closest(".acc-btn");if(!b)return;var o=b.getAttribute("aria-expanded")==="true";b.setAttribute("aria-expanded",o?"false":"true");b.nextElementSibling.classList.toggle("open",!o)});
+function closeDlg(){
+  dlg.classList.add("closing");ct=setTimeout(function(){dlg.hidden=true;dlg.classList.remove("closing")},190);
+  document.querySelectorAll(".part").forEach(function(p){p.classList.remove("on")});
+  Object.keys(chipEls).forEach(function(k){chipEls[k].setAttribute("aria-pressed","false")});
+  if(opener&&opener.focus)opener.focus();
+}
+dx.addEventListener("click",closeDlg);
+dlg.addEventListener("click",function(e){if(e.target===dlg)closeDlg()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!dlg.hidden)closeDlg()});
+document.getElementById("rankBtn").addEventListener("click",function(e){
+  var NR=[["Nucleus","Contains DNA and regulates the instructions needed for normal cellular activities."],["Ribosomes","Produce the proteins necessary for nearly every cellular process."],["Mitochondria","Supply most of the ATP needed to power cellular activities in many human cells."],["Rough ER","Produces and processes proteins needed for secretion, membranes, and certain organelles."],["Golgi Apparatus","Modifies and directs proteins and lipids to their proper destinations."],["Smooth ER","Produces important lipids, stores calcium, and supports detoxification."]];
+  openDlg("<h2 id='dt'>Importance ranking</h2><h3>All 11 structures, most to least essential</h3><ol>"+RANK.map(function(n){return "<li>"+n+"</li>"}).join("")+"</ol>",e.currentTarget);
+});
+document.getElementById("srcBtn").addEventListener("click",function(e){
+  openDlg("<h2 id='dt'>Sources</h2><h3>Source list</h3><ul>"+SRC.map(function(u){return "<li><a href='"+u+"' target='_blank' rel='noopener noreferrer'>"+u+"</a></li>"}).join("")+"</ul>",e.currentTarget);
+});
+var chipEls={};
+function select(id){
+  document.querySelectorAll(".part").forEach(function(p){p.classList.toggle("on",p.getAttribute("data-id")===id)});
+  Object.keys(chipEls).forEach(function(k){chipEls[k].setAttribute("aria-pressed",k===id?"true":"false")});
+  openDlg(render(id));
+}
+document.querySelectorAll(".part").forEach(function(p){
+  var id=p.getAttribute("data-id");
+  p.querySelectorAll('path[stroke="transparent"]').forEach(function(h){h.classList.add("hit")});
+  if(id==="rer"||id==="ser"||id==="golgi"){p.querySelectorAll("path").forEach(function(s){var c=s.cloneNode(false);c.setAttribute("class","hit");c.setAttribute("fill","none");c.setAttribute("stroke","transparent");c.setAttribute("stroke-width","22");c.setAttribute("stroke-linecap","round");p.appendChild(c)})}
+  p.setAttribute("tabindex","0");p.setAttribute("role","button");p.setAttribute("aria-label",names[id]);
+  var t=document.createElementNS(NS,"title");t.textContent=names[id];p.insertBefore(t,p.firstChild);
+  p.addEventListener("click",function(){select(id)});
+  p.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();select(id)}});
+});
+Object.keys(names).forEach(function(id){
+  var b=document.createElement("button");b.type="button";b.textContent=names[id];b.setAttribute("aria-pressed","false");
+  b.addEventListener("click",function(){select(id)});
+  chips.appendChild(b);chipEls[id]=b;
+});
+})();
+</script>
+</body>
+</html>
